@@ -3,12 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+// Immediately create and run GPSLoggingAndMapping app.
 void main() {
-  runApp(MyApp());
+  runApp(GPSLoggingAndMapping());
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+// This widget is the root of your application.
+class GPSLoggingAndMapping extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,81 +18,50 @@ class MyApp extends StatelessWidget {
         // This is the theme of your application.
         primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'GPS Logging and Mapping'),
-    );
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('GPS Logging and Mapping'),
+        ),
+        body: Center(
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: Column(
+            // Column is also a layout widget. It takes a list of children and
+            // arranges them vertically. By default, it sizes itself to fit its
+            // children horizontally, and tries to be as tall as its parent.
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'Your Current Location:',
+              ),
+              UserLocation(),
+            ],
+          ),
+        ),
+      )
+      );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class UserLocation extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _UserLocationState createState() => _UserLocationState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  Position _location;
+class _UserLocationState extends State<UserLocation> {
+  Position _userLocation;
 
   void setupLocationStream() {
-    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.high).listen(
-            (Position position) {
-          setState(() {
-            _location = position;
-          });
-        });
+    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.high).listen((Position position) {
+      setState(() {
+        _userLocation = position;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-
     setupLocationStream();
-
-    return Scaffold(
-      appBar: AppBar(
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Your current location:',
-            ),
-            Text(
-              '$_location',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-    );
+    return Text('$_userLocation');
   }
 }
