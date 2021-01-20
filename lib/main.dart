@@ -65,7 +65,7 @@ class _UserLocationState extends State<UserLocation> {
           final index = i ~/ 2;
 
           if (index < _userLocationHistory.length) {
-            return _buildRow(_userLocationHistory[index]);
+            return _buildRow((index + 1), _userLocationHistory[index]);
           }
         },
       itemCount: _userLocationHistory.length,
@@ -73,10 +73,9 @@ class _UserLocationState extends State<UserLocation> {
     );
   }
 
-  Widget _buildRow(Position location) {
+  Widget _buildRow(int index, Position location) {
     ListTile           row = ListTile(
-      title: Text(
-        '$location',
+      title: Text('$index: ' + '$location',
         style: _biggerFont,
       ),
     );
