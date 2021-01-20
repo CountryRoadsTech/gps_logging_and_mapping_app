@@ -33,6 +33,7 @@ class _UserLocationState extends State<UserLocation> {
   final _userLocationHistory = <Position>[];
 
   final _biggerFont = TextStyle(fontSize: 18.0);
+  final _listViewScrollController = new ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -66,15 +67,22 @@ class _UserLocationState extends State<UserLocation> {
           if (index < _userLocationHistory.length) {
             return _buildRow(_userLocationHistory[index]);
           }
-        });
+        },
+      itemCount: _userLocationHistory.length,
+      controller: _listViewScrollController,
+    );
   }
 
   Widget _buildRow(Position location) {
-    return ListTile(
+    ListTile           row = ListTile(
       title: Text(
         '$location',
         style: _biggerFont,
       ),
     );
+
+    _listViewScrollController.animateTo(_listViewScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+
+    return row;
   }
 }
