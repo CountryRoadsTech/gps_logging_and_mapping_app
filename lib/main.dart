@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:sqflite/sqflite.dart';
 
 // Immediately create and run GPSLoggingAndMapping app.
 void main() {
@@ -29,15 +29,20 @@ class UserLocation extends StatefulWidget {
 
 class _UserLocationState extends State<UserLocation> {
   LocationData _currentUserLocation; // User's location
-  final _userLocationHistory =
-      <LocationData>[]; // A History of all the user's locations since they have been using the app this session.
+  // A History of all the user's locations since they have been using the app this session.
+  final _userLocationHistory = <LocationData>[];
+
+  final _databaseName = 'gps_logging_and_mapping_app.db';
+  final _databaseMigrationVersion = 1;
+  Database _database; // Store the history to a local database, for later syncing to the server.
 
   final _biggerFont = TextStyle(fontSize: 18.0);
   final _listViewScrollController = new ScrollController();
 
   @override
   Widget build(BuildContext context) {
-    setupLocationStream();
+    _setupLocationStream();
+    _setupDatabase();
 
     return Scaffold(
       appBar: AppBar(
@@ -47,12 +52,12 @@ class _UserLocationState extends State<UserLocation> {
     );
   }
 
-  void setupLocationStream() async {
+  void _setupLocationStream() async {
     Location locationServices = new Location();
+    locationServices.changeSettings(accuracy: LocationAccuracy.high); // Use highest location accuracy possible.
 
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
-    LocationData _locationData;
 
     // Ensure location services are turned on.
     _serviceEnabled = await locationServices.serviceEnabled();
@@ -63,7 +68,7 @@ class _UserLocationState extends State<UserLocation> {
       }
     }
 
-    // Ask the user for permission for accessing their device.
+    // Ask the user for permission before accessing their device's location.
     _permissionGranted = await locationServices.hasPermission();
     if (_permissionGranted == PermissionStatus.denied) {
       _permissionGranted = await locationServices.requestPermission();
@@ -82,10 +87,11 @@ class _UserLocationState extends State<UserLocation> {
     return ListView.builder(
       padding: EdgeInsets.all(16.0),
       itemBuilder: (context, i) {
-        if (i.isOdd) return Divider();
+        if (i.isOdd) return Divider(); // Every other row should be a divider.
 
         final index = i ~/ 2;
 
+        // Only access the location history list if the index is within range.
         if (index < _userLocationHistory.length) {
           return _buildRow((index + 1), _userLocationHistory[index]);
         }
@@ -114,5 +120,30 @@ class _UserLocationState extends State<UserLocation> {
       _currentUserLocation = newLocation;
       _userLocationHistory.add(_currentUserLocation);
     });
+    saveRecordToDatabase(_currentUserLocation);
+  }
+
+  void _setupDatabase() async {
+    _database = await openDatabase(_databaseName, version: _databaseMigrationVersion,
+        onCreate: (Database db, int version) async {
+          // When creating the database, create the table's for points.
+          if (version == 1) {
+            await db.execute(
+                'CREATE TABLE points (id INTEGER PRIMARY KEY, name TEXT, comment TEXT, latitude REAL, longitude REAL, accuracy REAL, altitude REAL, speed REAL, heading REAL, recorded_at TEXT, point_of_interest INTEGER)'
+            );
+          }
+      }
+    );
+  }
+
+  void saveRecordToDatabase(LocationData point) {
+    _database.transaction((txn) async {
+      var record = await txn.rawInsert('INSERT INTO points(name, latitude, longitude, accuracy, altitude, speed, heading, recorded_at, point_of_interest) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                    ['point name *', point.latitude, point.longitude, point.accuracy, point.altitude, point.speed, point.heading, _convertToDateTime(point.time.toInt()), 0]);
+    });
+  }
+
+  String _convertToDateTime(int time) {
+    return DateTime.fromMillisecondsSinceEpoch(time).toString();
   }
 }
