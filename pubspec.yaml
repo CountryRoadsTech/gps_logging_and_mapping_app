@@ -29,7 +29,10 @@ dependencies:
   cupertino_icons: ^1.0.1
 
   # Enables requesting the user's location from GPS.
-  geolocator: ^6.1.14
+  location: ^3.0.0
+
+  # Enables storing data in a local SQLite database.
+  sqflite: ^1.3.2
 
 dev_dependencies:
   flutter_test:

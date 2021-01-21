@@ -1,7 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart';
 
 // Immediately create and run GPSLoggingAndMapping app.
 void main() {
@@ -29,8 +28,8 @@ class UserLocation extends StatefulWidget {
 }
 
 class _UserLocationState extends State<UserLocation> {
-  Position _currentUserLocation;
-  final _userLocationHistory = <Position>[];
+  LocationData _currentUserLocation;
+  final _userLocationHistory = <LocationData>[];
 
   final _biggerFont = TextStyle(fontSize: 18.0);
   final _listViewScrollController = new ScrollController();
@@ -47,12 +46,35 @@ class _UserLocationState extends State<UserLocation> {
     );
   }
 
-  void setupLocationStream() {
-    Geolocator.getPositionStream(desiredAccuracy: LocationAccuracy.high).listen((Position position) {
-      setState(() {
-        _currentUserLocation = position;
-        _userLocationHistory.add(_currentUserLocation);
-      });
+  void setupLocationStream() async {
+    Location locationServices = new Location();
+
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    // Ensure location services are turned on.
+    _serviceEnabled = await locationServices.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await locationServices.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    // Ask the user for permission for accessing their device.
+    _permissionGranted = await locationServices.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await locationServices.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    // Once the phone has returned the location, save and update it.
+    _locationData = await locationServices.getLocation();
+    setState(() {
+      _saveNewLocation(_locationData);
     });
   }
 
@@ -73,7 +95,7 @@ class _UserLocationState extends State<UserLocation> {
     );
   }
 
-  Widget _buildRow(int index, Position location) {
+  Widget _buildRow(int index, LocationData location) {
     ListTile           row = ListTile(
       title: Text('$index: ' + '$location',
         style: _biggerFont,
@@ -83,5 +105,10 @@ class _UserLocationState extends State<UserLocation> {
     _listViewScrollController.animateTo(_listViewScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
 
     return row;
+  }
+
+  void _saveNewLocation(LocationData newLocation) {
+    _currentUserLocation = newLocation;
+    _userLocationHistory.add(newLocation);
   }
 }
