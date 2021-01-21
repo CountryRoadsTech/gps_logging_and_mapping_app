@@ -29,7 +29,8 @@ class UserLocation extends StatefulWidget {
 
 class _UserLocationState extends State<UserLocation> {
   LocationData _currentUserLocation; // User's location
-  final _userLocationHistory = <LocationData>[]; // A History of all the user's locations since they have been using the app this session.
+  final _userLocationHistory =
+      <LocationData>[]; // A History of all the user's locations since they have been using the app this session.
 
   final _biggerFont = TextStyle(fontSize: 18.0);
   final _listViewScrollController = new ScrollController();
@@ -72,43 +73,46 @@ class _UserLocationState extends State<UserLocation> {
     }
 
     // Once the phone has returned the location, save and update it.
-    _locationData = await locationServices.getLocation();
-    setState(() {
-      _saveNewLocation(_locationData);
+    locationServices.onLocationChanged.listen((LocationData currentLocation) {
+      _saveNewLocation(currentLocation);
     });
   }
 
   Widget _buildList() {
     return ListView.builder(
-        padding: EdgeInsets.all(16.0),
-        itemBuilder: (context, i) {
-          if (i.isOdd) return Divider();
+      padding: EdgeInsets.all(16.0),
+      itemBuilder: (context, i) {
+        if (i.isOdd) return Divider();
 
-          final index = i ~/ 2;
+        final index = i ~/ 2;
 
-          if (index < _userLocationHistory.length) {
-            return _buildRow((index + 1), _userLocationHistory[index]);
-          }
-        },
+        if (index < _userLocationHistory.length) {
+          return _buildRow((index + 1), _userLocationHistory[index]);
+        }
+      },
       itemCount: _userLocationHistory.length,
       controller: _listViewScrollController,
     );
   }
 
   Widget _buildRow(int index, LocationData location) {
-    ListTile           row = ListTile(
-      title: Text('$index: ' + '$location',
+    ListTile row = ListTile(
+      title: Text(
+        '$index: ' + '$location',
         style: _biggerFont,
       ),
     );
 
-    _listViewScrollController.animateTo(_listViewScrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
+    _listViewScrollController.animateTo(_listViewScrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
 
     return row;
   }
 
   void _saveNewLocation(LocationData newLocation) {
-    _currentUserLocation = newLocation;
-    _userLocationHistory.add(_currentUserLocation);
+    setState(() {
+      _currentUserLocation = newLocation;
+      _userLocationHistory.add(_currentUserLocation);
+    });
   }
 }
