@@ -28,8 +28,8 @@ class UserLocation extends StatefulWidget {
 }
 
 class _UserLocationState extends State<UserLocation> {
-  LocationData _currentUserLocation;
-  final _userLocationHistory = <LocationData>[];
+  LocationData _currentUserLocation; // User's location
+  final _userLocationHistory = <LocationData>[]; // A History of all the user's locations since they have been using the app this session.
 
   final _biggerFont = TextStyle(fontSize: 18.0);
   final _listViewScrollController = new ScrollController();
@@ -109,6 +109,6 @@ class _UserLocationState extends State<UserLocation> {
 
   void _saveNewLocation(LocationData newLocation) {
     _currentUserLocation = newLocation;
-    _userLocationHistory.add(newLocation);
+    _userLocationHistory.add(_currentUserLocation);
   }
 }
