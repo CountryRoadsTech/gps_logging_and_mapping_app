@@ -34,6 +34,9 @@ dependencies:
   # Enables storing data in a local SQLite database.
   sqflite: ^1.3.2
 
+  # Enables posting user location data to the remote API.
+  http: ^0.12.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
